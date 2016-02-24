@@ -32,7 +32,7 @@ if here not in sys.path[:2]:
 if up_one not in sys.path[:2]:
     sys.path.insert(0, up_one)
 
-from qt4_gengui.qt4_gengui import GenGUI
+from qt4_gengui.gui_main import GenGUI
 
 class MyTest(unittest.TestCase):
 
