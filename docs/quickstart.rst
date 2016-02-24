@@ -38,25 +38,6 @@ After navigating to the directory holding Qt4_GenGUI source code, do the followi
     
 This will execute the local ``setup.py`` file and insure that the pip-specific commands in ``setup.py`` are run.
 
-Running Qt4_GenGUI
-------------------
-
-After installing with ``pip``, there will be a launch command line program called **qt4_gengui** or, on Windows, **qt4_gengui.exe**. From a terminal or command prompt window simply type::
-
-    qt4_gengui
-
-and Qt4_GenGUI will start. If not, then there may be an issue with your system path.
-The path for the qt4_gengui executable might be something like::
-
-    /usr/local/bin/qt4_gengui             (if installed with sudo pip install -e .)
-         or 
-    /home/<user>/.local/bin/qt4_gengui    (if installed with pip install -e .)
-         or 
-    C:\Python27\Scripts\qt4_gengui.exe    (on Windows)
-
-Make sure your system path includes the above path to **qt4_gengui**.
-
-
 .. _internal_pip_error:
 
 pip Error Messages
