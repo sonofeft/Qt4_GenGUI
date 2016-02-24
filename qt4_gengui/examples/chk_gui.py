@@ -12,9 +12,9 @@ class MyGUI( GenGUI ):
                         
     def initVars(self):
         self.data_file_suffix = '.dat'
-        GenGUI.tabL.extend(  ['Orifice 1','Face Seal'] )
+        GenGUI.tabL.extend(  ['Pollywog','Tree Frog'] )
         
-        self.main_window_title_str = 'Orifice Calcs'
+        self.main_window_title_str = 'Pollywog Calcs'
     
     def add_widgets( self ):
         
@@ -36,11 +36,11 @@ class MyGUI( GenGUI ):
         self.grid.addWidget(self.tabWidget, Nrow, 1, 4, 1)
         self.set_next_row_number( Nrow + 4 )
 
-        tabObj = GenGUI.tabObjectD['Orifice 1']
+        tabObj = GenGUI.tabObjectD['Pollywog']
         self.add_label( advance_n=True, text='Your label Here', name='sample',
                    text_align='', text_font=ARIAL_12B, col=1, width=1, parent=tabObj)
 
-        tabObj = GenGUI.tabObjectD['Face Seal']
+        tabObj = GenGUI.tabObjectD['Tree Frog']
         self.add_radio_btns(['tab 1','tab 2','tab 3'], 
                           name='tab_radio', init_val=2,
                           advance_n=False, fulldesc='Tab Choices', 

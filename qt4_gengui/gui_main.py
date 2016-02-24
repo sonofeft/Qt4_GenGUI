@@ -125,6 +125,18 @@ class GenGUI(GenericGUI):
         
         self.add_label( advance_n=True, text='Your label Here', name='sample',
                    text_align='', text_font=ARIAL_12B, col=1, width=1)
+                   
+        self.add_push_button( name='testBtn', fulldesc='This is a Test',
+                           advance_n=False, text_font=ARIAL_12B, col=3, 
+                           connect_function=self.print_output, background='', pressed_bgrnd='')
+        
+        self.add_radio_btns(['radio 1','radio 2','radio 3'], 
+                          name='main_radio', init_val=2,
+                          advance_n=False, fulldesc='Radio Choices', 
+                          text_font=ARIAL_10, col=0)    
+        
+        self.add_image( advance_n=False, path_to_image=r'D:\py_proj_2016\Qt4_GenGUI\qt4_gengui\images\document.png', name='doc',
+                        image_align='', col=2, width=1, height=1)
         
         # ====================================================
         if GenGUI.tabL:
@@ -158,34 +170,23 @@ class GenGUI(GenericGUI):
                    parent=None, layout=None)
 
         # =============================================
-        self.add_lineEdit( advance_n=True, text_font=ARIAL_10, onChange_function=None,
-                                name='myval', fulldesc='Some Value',  col=1, width=1)
                    
         #self.add_some_vertical_space()
         
-        self.add_radio_btns(['radio 1','radio 2','radio 3'], 
-                          name='main_radio', init_val=2,
-                          advance_n=False, fulldesc='Radio Choices', 
-                          text_font=ARIAL_10, col=0)    
-        
-        
-        self.add_image( advance_n=False, path_to_image=r'D:\py_proj_2016\Qt4_GenGUI\qt4_gengui\images\document.png', name='doc',
-                        image_align='', col=1, width=1, height=1)
         
         self.add_list_box(['choice 1','choice 2','choice 3'], 
                           name='choiceNum', init_val=1,
                           advance_n=True, fulldesc='Generic Choices', 
-                          connect_function=None, text_font=ARIAL_10, col=2)
+                          connect_function=None, text_font=ARIAL_10, col=0)
                           
         self.add_some_horizontal_space( col=10, stretch=11)
         # ================================
-        self.add_push_button( name='testBtn', fulldesc='This is a Test',
-                           advance_n=False, text_font=ARIAL_12B, col=0, 
-                           connect_function=self.print_output, background='', pressed_bgrnd='')
+        self.add_lineEdit( advance_n=False, text_font=ARIAL_10, onChange_function=None,
+                                name='myval', fulldesc='Some Value',  col=2, width=1)
                            
         self.add_spin_box( name='Number', n_min=1, n_max=99, init_val=13,
                        advance_n=True, fulldesc='Number of Things', 
-                        text_align='right', text_font=ARIAL_10, col=1, width=120)
+                        text_align='right', text_font=ARIAL_10, col=0, width=120)
         
         # ===================================
         self.add_combo_box( ['combo 1','combo 2','combo 3'], index_init=0, name='cycle_desc',
