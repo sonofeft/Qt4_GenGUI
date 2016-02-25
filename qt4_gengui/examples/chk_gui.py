@@ -1,21 +1,65 @@
 import sys
+import os
 from PyQt4 import QtGui
 from qt4_gengui.gui_main import GenGUI, MyTabWidget, MyWidget
 from qt4_gengui.build_gui import GenericGUI, DEBUG_LEVEL
 from qt4_gengui.build_gui import ARIAL_8B, ARIAL_10B, ARIAL_12B, ARIAL_8, ARIAL_10, ARIAL_12
+from PyQt4.QtCore import pyqtSlot
+from PyQt4 import QtCore
 
+here = os.path.abspath(os.path.dirname(__file__))
+
+class MyTabWidget(QtGui.QTabWidget):
+    
+    def __init__(self):
+        super(QtGui.QTabWidget,self).__init__()
+        
+    
+    @pyqtSlot(int)
+    def tabChangedSlot(self, argTabIndex):
+        GenGUI.objectD['statusBar'].showMessage( "Page %i) "%(int(QtCore.QString.number(argTabIndex))+1,)\
+                                                  + GenGUI.tabL[argTabIndex] )
+        
+        # Show Nozzle Mode
+        if GenGUI.tabL[argTabIndex] == 'Pollywog':
+            print 'GenGUI.tabL[argTabIndex] =',GenGUI.tabL[argTabIndex]
+            
+        elif GenGUI.tabL[argTabIndex] == 'Tree Frog':
+            print 'Entered Tree Frog tab'
 
 class MyGUI( GenGUI ):
 
-    def __init__(self, centerContent=False, has_menu_bar=True, enable_recent_files=True):
+    def __init__(self, centerContent=False, enable_recent_files=True):
         
         super(MyGUI, self).__init__(centerContent=centerContent, 
-                                     has_menu_bar=has_menu_bar,
                                      enable_recent_files=enable_recent_files)
+                                     
+        self.setGeometry(100, 100, 600, 300)
+        self.setMinimumSize(500,300)
+    
+    def say_hello(self):
+        #self.run_calculation()
+        QtGui.QMessageBox.information(self,
+                      "Hello World!",
+                      "This is a new Menu Item");
+    
                         
     def initVars(self):
         self.data_file_suffix = '.dat'
         GenGUI.tabL.extend(  ['Pollywog','Tree Frog'] )
+        
+        
+        self.add_action( name='Hello', connect_function=self.say_hello, 
+                     shortcut='Ctrl+H', status_tip='Say Hello', 
+                     icon_path=os.path.join(here,'./hello.jpg'))
+        
+        GenGUI.toolbarL = ['Open', 'Save', 'SaveAs', 'Run', 'Hello',
+                           'Launch Excel', 'Launch Help', 'Print', 'Exit']
+        # First member of each list is menu header. Rest of list are menu items.
+        GenGUI.standard_menuLL = [['File', 'Open', 'Save', 'SaveAs', 'Print', 'Exit'], 
+                                  ['Tools','Run','Launch Excel'], 
+                                  ['Help','Launch Help', 'About', 'Hello']]
+
         
         # Will create a configuration file at:
         #    C:\Users\<Your Name>\<main_window_title_str>.cfg

@@ -20,13 +20,13 @@ DEBUG_LEVEL = 0 # 0=no debug printing, 1=only most important, 2=medium, >=3 all 
 
 class GenericGUI(QtGui.QMainWindow):
     
-    def __init__(self, centerContent=True, has_menu_bar=True, has_tool_bar=True):
+    def __init__(self, centerContent=True):
         super(GenericGUI, self).__init__()
         
         self.inputD = {} # holds inputs to GUI
         
-        self.has_menu_bar = has_menu_bar
-        self.has_tool_bar = has_tool_bar
+        self.has_menu_bar = False  # set to True if GenGUI.standard_menuLL has entries
+        self.has_tool_bar = False  # set to True if "add_toolbar_items" is called
         
         # don't really need to initialize menu_headerL.  As menu items are added, the list grows.
         self.menu_headerL = [] # list of menu headers (e.g. ['&File', '&Tools', '&Help', ...]
@@ -717,6 +717,8 @@ class GenericGUI(QtGui.QMainWindow):
     
     def add_menu_item(self, name='Open', menu_header='&File'):
         
+        self.has_menu_bar = True
+        
         if menu_header.find('&') < 0:
             menu_header = '&' + menu_header
         
@@ -727,16 +729,27 @@ class GenericGUI(QtGui.QMainWindow):
         action = self.objectD['%s_action'%name]
         self.objectD['%s_menu_header'%menu_header].addAction( action )
         
-        return self.objectD['%s_menu_header'%menu_header] # return header item (NOT menu item)
+        return self.objectD['%s_menu_header'%menu_header] # return header object (NOT menu item)
+
+    def add_toolbar_items(self, nameL=None, tool_size=(40,40), 
+                              min_toolbar_ht=40, toolbar_margin=0 ):
+        
+        self.has_tool_bar = True
+        
+        for name in nameL:
+            toolbar = self.addToolBar(name)
+            action = self.objectD['%s_action'%name]
+            
+            toolbar.addAction(action)
+            toolbar.setIconSize( QtCore.QSize(*tool_size) )
+
+            toolbar.setMinimumHeight( min_toolbar_ht )
+            toolbar.setContentsMargins(toolbar_margin, toolbar_margin, toolbar_margin, toolbar_margin)
+        
 
     def add_action(self, name='Open', connect_function=None, 
-                     shortcut='Ctrl+O', status_tip='Open File', tool_size=(40,40), 
-                     icon_path='', min_toolbar_ht=40, toolbar_margin=0):
-
-        """
-        Use flags self.has_menu_bar and  self.has_tool_bar to place menu items 
-        and toobar items for each action
-        """
+                     shortcut='Ctrl+O', status_tip='Open File', 
+                     icon_path=''):
 
         if icon_path:
             action = QtGui.QAction(QtGui.QIcon(icon_path), name, self)
@@ -750,15 +763,6 @@ class GenericGUI(QtGui.QMainWindow):
         
         if connect_function is not None:
             action.triggered.connect( connect_function )
-        
-        if self.has_tool_bar:
-            toolbar = self.addToolBar(name)            
-            toolbar.addAction(action)
-            if icon_path:
-                toolbar.setIconSize( QtCore.QSize(*tool_size) )
-
-            toolbar.setMinimumHeight( min_toolbar_ht )
-            toolbar.setContentsMargins(toolbar_margin, toolbar_margin, toolbar_margin, toolbar_margin)
                 
         return action
  

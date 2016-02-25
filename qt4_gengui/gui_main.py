@@ -106,13 +106,19 @@ class GenGUI(GenericGUI):
     tabL = [] # used by MyTabWidget to ID tabs
     tabIndexD = {} # index=tab label, value=tabWidget index
     tabObjectD = {}# index=tab label, value=QtGui.QWidget()
+    
+    # Placed onto toolbar in order
+    toolbarL = ['Open', 'Save', 'SaveAs', 'Run', 'Launch Excel', 'Launch Help', 'Print', 'Exit']
+    
+    # First member of each list is menu header. Rest of list are menu items.
+    standard_menuLL = [['File', 'Open', 'Save', 'SaveAs', 'Print', 'Exit'], 
+                      ['Tools','Run','Launch Excel'], 
+                      ['Help','Launch Help', 'About']]
 
 
-    def __init__(self, centerContent=True, has_menu_bar=True, 
-                  has_tool_bar=True, enable_recent_files=True):
+    def __init__(self, centerContent=True, enable_recent_files=True):
         
-        super(GenGUI, self).__init__(centerContent=centerContent, has_menu_bar=has_menu_bar,
-                                      has_tool_bar=has_tool_bar)
+        super(GenGUI, self).__init__(centerContent=centerContent)
         
         GenGUI.objectD = self.objectD # make sure objectD from GenericGUI is same as GenGUI
         
@@ -134,7 +140,7 @@ class GenGUI(GenericGUI):
                    
         self.add_push_button( name='testBtn', fulldesc='This is a Test',
                            advance_n=False, text_font=ARIAL_12B, col=3, 
-                           connect_function=self.print_output, background='', pressed_bgrnd='')
+                           connect_function=self.about_message, background='', pressed_bgrnd='')
         
         self.add_radio_btns(['radio 1','radio 2','radio 3'], 
                           name='main_radio', init_val=2,
@@ -152,9 +158,6 @@ class GenGUI(GenericGUI):
                 tabObj = MyWidget()
                 GenGUI.tabObjectD[tab_label] = tabObj
                 GenGUI.tabIndexD[tab_label] = self.tabWidget.addTab( tabObj ,tab_label)
-                #grid = QtGui.QGridLayout()
-                #grid.setSpacing(0)
-                #tabObj.setLayout(grid) <=== done by MyWidget
             
             
             Nrow = self.get_next_row_number( advance_n=True)
@@ -222,36 +225,40 @@ class GenGUI(GenericGUI):
         
         self.inputD = {} # holds inputs to GUI
         
-        openAction = self.add_action( name='Open', connect_function=self.open_file, 
-                     shortcut='Ctrl+O', status_tip='Open File', tool_size=(40,40), 
+        self.add_action( name='Open', connect_function=self.open_file, 
+                     shortcut='Ctrl+O', status_tip='Open File', 
                      icon_path=os.path.join(here,'./images/open.jpg'))
                 
-        saveAction = self.add_action( name='Save', connect_function=self.save_file, 
-                     shortcut='Ctrl+S', status_tip='Save File', tool_size=(40,40), 
+        self.add_action( name='Save', connect_function=self.save_file, 
+                     shortcut='Ctrl+S', status_tip='Save File', 
                      icon_path=os.path.join(here,'./images/save_v4.jpg'))
                 
-        saveAsAction = self.add_action( name='SaveAs', connect_function=self.saveAs_file, 
-                     shortcut='F12', status_tip='SaveAs File', tool_size=(40,40), 
+        self.add_action( name='SaveAs', connect_function=self.saveAs_file, 
+                     shortcut='F12', status_tip='SaveAs File', 
                      icon_path=os.path.join(here,'./images/saveas.jpg'))
                 
-        runAction = self.add_action( name='Run', connect_function=self.run_calculation, 
-                     shortcut='F5', status_tip='Run Calculation', tool_size=(40,40), 
+        self.add_action( name='Run', connect_function=self.run_calculation, 
+                     shortcut='F5', status_tip='Run Calculation', 
                      icon_path=os.path.join(here,'./images/run.jpg'))
         
-        excelAction = self.add_action( name='Launch Excel', connect_function=self.launch_excel, 
-                     shortcut='F7', status_tip='Launch Excel', tool_size=(40,40), 
+        self.add_action( name='Launch Excel', connect_function=self.launch_excel, 
+                     shortcut='F7', status_tip='Launch Excel', 
                      icon_path=os.path.join(here,'./images/excel.jpg'))
         
-        helpAction = self.add_action( name='Launch Help', connect_function=self.launch_help, 
-                     shortcut='F1', status_tip='Launch Help', tool_size=(40,40), 
+        self.add_action( name='Launch Help', connect_function=self.launch_help, 
+                     shortcut='F1', status_tip='Launch Help', 
                      icon_path=os.path.join(here,'./images/help.jpg'))
         
-        printAction = self.add_action( name='Print', connect_function=self.print_output, 
-                     shortcut='Ctrl+P', status_tip='Print Results', tool_size=(40,40), 
+        self.add_action( name='About', connect_function=self.about_message, 
+                     shortcut='Ctrl+A', status_tip='About This Code', 
+                     icon_path='')
+        
+        self.add_action( name='Print', connect_function=self.print_output, 
+                     shortcut='Ctrl+P', status_tip='Print Results', 
                      icon_path=os.path.join(here,'./images/print.png'))
         
-        exitAction = self.add_action( name='Exit', connect_function=self.maybe_exit, 
-                     shortcut='Ctrl+Q', status_tip='Exit Application', tool_size=(40,40), 
+        self.add_action( name='Exit', connect_function=self.maybe_exit, 
+                     shortcut='Ctrl+Q', status_tip='Exit Application', 
                      icon_path=os.path.join(here,'./images/exit.jpg'))
         
 
@@ -265,26 +272,28 @@ class GenGUI(GenericGUI):
         
         self.status_bar = self.statusBar()
         self.objectD['statusBar'] = self.status_bar
-
-        if self.has_menu_bar:
+        
+        # set up menu bar if defined
+        if GenGUI.standard_menuLL:
             self.gen_menubar = self.menuBar()
-            self.add_menu_item( name='Open', menu_header='File')
-            self.add_menu_item( name='Save', menu_header='File')
-            self.add_menu_item( name='SaveAs', menu_header='File')
-            fileMenu = self.add_menu_item( name='Print', menu_header='File')
             
-            if self.enable_recent_files:
-                self.separatorAct = fileMenu.addSeparator()
-                for i in range(RecentFiles.MaxRecentFiles):
-                    fileMenu.addAction(self.recentFileActs[i])
-                fileMenu.addSeparator()        
-            
-            self.add_menu_item( name='Exit', menu_header='File')
-
-            self.add_menu_item( name='Run', menu_header='Tools')
-            self.add_menu_item( name='Launch Excel', menu_header='Tools')
-
-            self.add_menu_item( name='Launch Help', menu_header='Help')
+            for irow,row in enumerate(GenGUI.standard_menuLL):
+                menu_header = row[0]
+                for menu_item in row[1:]:
+                    header_obj =self.add_menu_item( name=menu_item, menu_header=menu_header)
+                    
+                if irow==0 and self.enable_recent_files:
+                    self.separatorAct = header_obj.addSeparator()
+                    for i in range(RecentFiles.MaxRecentFiles):
+                        header_obj.addAction(self.recentFileActs[i])
+                    header_obj.addSeparator()        
+                    
+        else:
+            self.enable_recent_files = False # can't have recent files in menu if no menu
+        
+        if GenGUI.toolbarL:
+            self.add_toolbar_items( nameL=GenGUI.toolbarL, tool_size=(40,40), 
+                              min_toolbar_ht=40, toolbar_margin=0 )
             
         
         # Debug print of default values
@@ -576,6 +585,17 @@ class GenGUI(GenericGUI):
         QtGui.QMessageBox.information(self,
                       "Need Print Logic!",
                       "Run Print here.");
+    
+    def about_message(self):
+        #self.run_calculation()
+        QtGui.QMessageBox.information(self,
+                      "About Qt4_GenGUI v:%s"%__version__,
+                      """This generic GUI creates a main page, menu, toolbar and statusbar.
+Modify this starting point to suit your projets' needs.
+
+author: Charlie Taylor <cet@appliedpython.com>
+License: OSI Approved GNU General Public License v3 (GPLv3)
+""");
     
     def launch_help(self):
         webbrowser.open(INDEX_PAGE)
