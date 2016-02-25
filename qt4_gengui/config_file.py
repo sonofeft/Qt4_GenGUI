@@ -58,7 +58,7 @@ class ConfigInterface(object):
     def __init__(self, config_filename='myconfig.cfg', sectionL=None):
         """Inits ConfigInterface a ConfigParser and a config file name.
         
-           :param config_filename: name of config file 
+           :param config_filename: name of config file (data files also in config format)
            :param sectionL: a list of section headings in config file
            
            :type config_filename: string
@@ -68,7 +68,11 @@ class ConfigInterface(object):
         self.state_id_number = 0 # is incremented each time a change takes place
         
         self.config_filename= os.path.abspath( config_filename )
-        print 'Config File:', self.config_filename
+        if config_filename.lower().endswith('.cfg'):
+            print 'Config File:', self.config_filename
+        else:
+            print 'Data File:', self.config_filename
+            
         #self.config = configparser.SafeConfigParser()
         self.config = configparser.RawConfigParser()
         self.config.optionxform = str

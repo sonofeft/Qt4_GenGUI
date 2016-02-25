@@ -19,10 +19,18 @@ ARIAL_12 = QtGui.QFont("Arial", 12)
 DEBUG_LEVEL = 0 # 0=no debug printing, 1=only most important, 2=medium, >=3 all output
 
 class GenericGUI(QtGui.QMainWindow):
-    def __init__(self, centerContent=True):
+    
+    def __init__(self, centerContent=True, has_menu_bar=True, has_tool_bar=True):
         super(GenericGUI, self).__init__()
         
         self.inputD = {} # holds inputs to GUI
+        
+        self.has_menu_bar = has_menu_bar
+        self.has_tool_bar = has_tool_bar
+        
+        # don't really need to initialize menu_headerL.  As menu items are added, the list grows.
+        self.menu_headerL = [] # list of menu headers (e.g. ['&File', '&Tools', '&Help', ...]
+        
         # ==================== build parameters =======================================
         self.NextRowNumber = 0
         
@@ -707,3 +715,50 @@ class GenericGUI(QtGui.QMainWindow):
         if onChange_function:
             self.onChange_functionD[name] = onChange_function
     
+    def add_menu_item(self, name='Open', menu_header='&File'):
+        
+        if menu_header.find('&') < 0:
+            menu_header = '&' + menu_header
+        
+        if menu_header not in self.menu_headerL:
+            self.menu_headerL.append( menu_header )
+            self.objectD['%s_menu_header'%menu_header] = self.gen_menubar.addMenu(menu_header)
+        
+        action = self.objectD['%s_action'%name]
+        self.objectD['%s_menu_header'%menu_header].addAction( action )
+        
+        return self.objectD['%s_menu_header'%menu_header] # return header item (NOT menu item)
+
+    def add_action(self, name='Open', connect_function=None, 
+                     shortcut='Ctrl+O', status_tip='Open File', tool_size=(40,40), 
+                     icon_path='', min_toolbar_ht=40, toolbar_margin=0):
+
+        """
+        Use flags self.has_menu_bar and  self.has_tool_bar to place menu items 
+        and toobar items for each action
+        """
+
+        if icon_path:
+            action = QtGui.QAction(QtGui.QIcon(icon_path), name, self)
+        else:
+            action = QtGui.QAction( name, self)
+            
+        self.objectD['%s_action'%name] = action
+            
+        action.setShortcut(shortcut)
+        action.setStatusTip(status_tip)
+        
+        if connect_function is not None:
+            action.triggered.connect( connect_function )
+        
+        if self.has_tool_bar:
+            toolbar = self.addToolBar(name)            
+            toolbar.addAction(action)
+            if icon_path:
+                toolbar.setIconSize( QtCore.QSize(*tool_size) )
+
+            toolbar.setMinimumHeight( min_toolbar_ht )
+            toolbar.setContentsMargins(toolbar_margin, toolbar_margin, toolbar_margin, toolbar_margin)
+                
+        return action
+ 

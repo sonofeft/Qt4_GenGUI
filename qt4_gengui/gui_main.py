@@ -65,6 +65,7 @@ class MyWidget(QtGui.QWidget):
         self.NextRowNumber = 0
         if set_grid_layout:
             self.grid = QtGui.QGridLayout(self)
+            self.grid.setSpacing(0)
         
 
     def set_next_row_number( self, n ):
@@ -107,10 +108,15 @@ class GenGUI(GenericGUI):
     tabObjectD = {}# index=tab label, value=QtGui.QWidget()
 
 
-    def __init__(self, centerContent=True):
-        super(GenGUI, self).__init__(centerContent=centerContent)
+    def __init__(self, centerContent=True, has_menu_bar=True, 
+                  has_tool_bar=True, enable_recent_files=True):
         
-        GenGUI.objectD = self.objectD
+        super(GenGUI, self).__init__(centerContent=centerContent, has_menu_bar=has_menu_bar,
+                                      has_tool_bar=has_tool_bar)
+        
+        GenGUI.objectD = self.objectD # make sure objectD from GenericGUI is same as GenGUI
+        
+        self.enable_recent_files = enable_recent_files
         
         self.initVars()
         self.initUI()
@@ -146,9 +152,9 @@ class GenGUI(GenericGUI):
                 tabObj = MyWidget()
                 GenGUI.tabObjectD[tab_label] = tabObj
                 GenGUI.tabIndexD[tab_label] = self.tabWidget.addTab( tabObj ,tab_label)
-                grid = QtGui.QGridLayout()
-                grid.setSpacing(0)
-                tabObj.setLayout(grid)
+                #grid = QtGui.QGridLayout()
+                #grid.setSpacing(0)
+                #tabObj.setLayout(grid) <=== done by MyWidget
             
             
             Nrow = self.get_next_row_number( advance_n=True)
@@ -199,11 +205,14 @@ class GenGUI(GenericGUI):
     def initUI(self):
         
         self.objectD['QMainWindow'] = self
-                
-        self.recent_file_obj = RecentFiles(self.main_window_title_str)
-        self.recent_file_obj.chdir()
         
-        self.current_filePath = self.recent_file_obj.get_dir()
+        if self.enable_recent_files:
+            self.recent_file_obj = RecentFiles(self.main_window_title_str)
+            self.recent_file_obj.chdir()
+            
+            self.current_filePath = self.recent_file_obj.get_dir()
+        else:
+            self.current_filePath = here
             
         self.current_fileName = ''
         self.current_config_interface = None # Will change to default at bottom of init
@@ -213,102 +222,70 @@ class GenGUI(GenericGUI):
         
         self.inputD = {} # holds inputs to GUI
         
+        openAction = self.add_action( name='Open', connect_function=self.open_file, 
+                     shortcut='Ctrl+O', status_tip='Open File', tool_size=(40,40), 
+                     icon_path=os.path.join(here,'./images/open.jpg'))
+                
+        saveAction = self.add_action( name='Save', connect_function=self.save_file, 
+                     shortcut='Ctrl+S', status_tip='Save File', tool_size=(40,40), 
+                     icon_path=os.path.join(here,'./images/save_v4.jpg'))
+                
+        saveAsAction = self.add_action( name='SaveAs', connect_function=self.saveAs_file, 
+                     shortcut='F12', status_tip='SaveAs File', tool_size=(40,40), 
+                     icon_path=os.path.join(here,'./images/saveas.jpg'))
+                
+        runAction = self.add_action( name='Run', connect_function=self.run_calculation, 
+                     shortcut='F5', status_tip='Run Calculation', tool_size=(40,40), 
+                     icon_path=os.path.join(here,'./images/run.jpg'))
         
-        openAction = QtGui.QAction(QtGui.QIcon(os.path.join(here,'./images/open.jpg')), '&Open', self)        
-        openAction.setShortcut('Ctrl+O')
-        openAction.setStatusTip('Open File')
-        openAction.triggered.connect( self.open_file )
-        self.toolbar = self.addToolBar('Open')
-        self.toolbar.addAction(openAction)
-        self.toolbar.setIconSize( QtCore.QSize(40,40) )
+        excelAction = self.add_action( name='Launch Excel', connect_function=self.launch_excel, 
+                     shortcut='F7', status_tip='Launch Excel', tool_size=(40,40), 
+                     icon_path=os.path.join(here,'./images/excel.jpg'))
         
-        saveAction = QtGui.QAction(QtGui.QIcon(os.path.join(here,'./images/save_v4.jpg')), '&Save', self)        
-        saveAction.setShortcut('Ctrl+S')
-        saveAction.setStatusTip('Save File')
-        saveAction.triggered.connect( self.save_file )
-        self.toolbar = self.addToolBar('Save')
-        self.toolbar.addAction(saveAction)
-        self.toolbar.setIconSize( QtCore.QSize(40,40) )
+        helpAction = self.add_action( name='Launch Help', connect_function=self.launch_help, 
+                     shortcut='F1', status_tip='Launch Help', tool_size=(40,40), 
+                     icon_path=os.path.join(here,'./images/help.jpg'))
         
-        saveAsAction = QtGui.QAction(QtGui.QIcon(os.path.join(here,'./images/saveas.jpg')), 'Save&As', self)        
-        saveAsAction.setShortcut('F12')
-        saveAsAction.setStatusTip('SaveAs File')
-        saveAsAction.triggered.connect( self.saveAs_file )
-        self.toolbar = self.addToolBar('SaveAs')
-        self.toolbar.addAction(saveAsAction)
-        self.toolbar.setIconSize( QtCore.QSize(40,40) )
+        printAction = self.add_action( name='Print', connect_function=self.print_output, 
+                     shortcut='Ctrl+P', status_tip='Print Results', tool_size=(40,40), 
+                     icon_path=os.path.join(here,'./images/print.png'))
         
-        runAction = QtGui.QAction(QtGui.QIcon(os.path.join(here,'./images/run.jpg')), '&Run', self)        
-        runAction.setShortcut('F5')
-        runAction.setStatusTip('Run Calculation')
-        runAction.triggered.connect( self.run_calculation )
-        self.toolbar = self.addToolBar('Run')
-        self.toolbar.addAction(runAction)
-        self.toolbar.setIconSize( QtCore.QSize(40,40) )
+        exitAction = self.add_action( name='Exit', connect_function=self.maybe_exit, 
+                     shortcut='Ctrl+Q', status_tip='Exit Application', tool_size=(40,40), 
+                     icon_path=os.path.join(here,'./images/exit.jpg'))
         
-        excelAction = QtGui.QAction(QtGui.QIcon(os.path.join(here,'./images/excel.jpg')), '&Launch Excel', self)        
-        excelAction.setShortcut('F7')
-        excelAction.setStatusTip('Launch Excel')
-        excelAction.triggered.connect( self.launch_excel )
-        self.toolbar = self.addToolBar('Launch Excel')
-        self.toolbar.addAction(excelAction)
-        self.toolbar.setIconSize( QtCore.QSize(40,40) )
-        
-        helpAction = QtGui.QAction(QtGui.QIcon(os.path.join(here,'./images/help.jpg')), '&Launch Help', self)        
-        helpAction.setShortcut('F1')
-        helpAction.setStatusTip('Launch Help')
-        helpAction.triggered.connect( self.launch_help )
-        self.toolbar = self.addToolBar('Launch Help')
-        self.toolbar.addAction(helpAction)
-        self.toolbar.setIconSize( QtCore.QSize(40,40) )
-        
-        excelAction = QtGui.QAction(QtGui.QIcon(os.path.join(here,'./images/print.png')), '&Print', self)        
-        excelAction.setShortcut('Ctrl+P')
-        excelAction.setStatusTip('Print Results')
-        excelAction.triggered.connect( self.print_output )
-        self.toolbar = self.addToolBar('Print')
-        self.toolbar.addAction(excelAction)
-        self.toolbar.setIconSize( QtCore.QSize(40,40) )
-        
-        exitAction = QtGui.QAction(QtGui.QIcon(os.path.join(here,'./images/exit.jpg')), '&Exit', self)        
-        exitAction.setShortcut('Ctrl+Q')
-        exitAction.setStatusTip('Exit application')
-        exitAction.triggered.connect(self.maybe_exit)
-        self.toolbar = self.addToolBar('Exit')
-        self.toolbar.addAction(exitAction)
-        self.toolbar.setIconSize( QtCore.QSize(40,40) )
 
-        self.recentFileActs = []
-        for i in range(RecentFiles.MaxRecentFiles):
-            self.recentFileActs.append(
-                    QtGui.QAction(self, visible=False,
-                            triggered=self.openRecentFile))
+        if self.enable_recent_files:
+            self.recentFileActs = []
+            for i in range(RecentFiles.MaxRecentFiles):
+                self.recentFileActs.append(
+                        QtGui.QAction(self, visible=False,
+                                triggered=self.openRecentFile))
 
-
-        self.toolbar.setMinimumHeight(40)
-        self.toolbar.setContentsMargins(0, 0, 0, 0)
+        
         self.status_bar = self.statusBar()
         self.objectD['statusBar'] = self.status_bar
 
-        menubar = self.menuBar()
-        self.fileMenu = menubar.addMenu('&File')
-        self.fileMenu.addAction(openAction)
-        self.fileMenu.addAction(saveAction)
-        self.fileMenu.addAction(saveAsAction)
-        
-        self.separatorAct = self.fileMenu.addSeparator()
-        for i in range(RecentFiles.MaxRecentFiles):
-            self.fileMenu.addAction(self.recentFileActs[i])
-        self.fileMenu.addSeparator()        
-        
-        self.fileMenu.addAction(exitAction)
-        
-        toolMenu = menubar.addMenu('&Tools')
-        toolMenu.addAction(runAction)
-        toolMenu.addAction(excelAction)
-        
-        helpMenu = menubar.addMenu('&Help')
-        helpMenu.addAction(helpAction)
+        if self.has_menu_bar:
+            self.gen_menubar = self.menuBar()
+            self.add_menu_item( name='Open', menu_header='File')
+            self.add_menu_item( name='Save', menu_header='File')
+            self.add_menu_item( name='SaveAs', menu_header='File')
+            fileMenu = self.add_menu_item( name='Print', menu_header='File')
+            
+            if self.enable_recent_files:
+                self.separatorAct = fileMenu.addSeparator()
+                for i in range(RecentFiles.MaxRecentFiles):
+                    fileMenu.addAction(self.recentFileActs[i])
+                fileMenu.addSeparator()        
+            
+            self.add_menu_item( name='Exit', menu_header='File')
+
+            self.add_menu_item( name='Run', menu_header='Tools')
+            self.add_menu_item( name='Launch Excel', menu_header='Tools')
+
+            self.add_menu_item( name='Launch Help', menu_header='Help')
+            
         
         # Debug print of default values
         if DEBUG_LEVEL > 2:
@@ -316,17 +293,9 @@ class GenGUI(GenericGUI):
                 print '%15s'%key,val[-1]
             print
 
-        self.setGeometry(100, 100, 1000, 600)
+        self.setGeometry(100, 100, 500, 300)
+        self.setMinimumSize(500,300)
         #self.setWindowTitle('Qt4_GenGUI')
-        
-        if len(sys.argv) > 1:
-            fname = sys.argv[1]
-            if not fname.lower().endswith(self.data_file_suffix.lower()):
-                fname = fname + self.data_file_suffix
-                if os.path.isfile( fname ):
-                    fname = os.path.abspath( fname )
-            
-                    self.load_file( fname )
         
         self.updateRecentFileActions()
         
@@ -334,6 +303,24 @@ class GenGUI(GenericGUI):
 
         self.tabWidget.connect(self.tabWidget,SIGNAL("currentChanged(int)"),
                                self.tabWidget,SLOT("tabChangedSlot(int)"))
+        
+        if len(sys.argv) > 1:
+            print 'Opening Data File:',sys.argv[1]
+            fname = sys.argv[1]
+            if not fname.lower().endswith(self.data_file_suffix.lower()):
+                print '   Assuming data suffix: "%s"'%self.data_file_suffix
+                fname = fname + self.data_file_suffix
+                
+            fname = os.path.abspath( fname )
+            if os.path.isfile( fname ):
+                self.load_file( fname )
+                print '...NOTICE... loaded file:'
+                print '    ',fname
+            else:
+                print '...ERROR... could not find file:'
+                print '    ',fname
+                
+            self.updateRecentFileActions()
         
         self.clear_changes() # No current changes to worry about
         
@@ -343,6 +330,12 @@ class GenGUI(GenericGUI):
 
 
     def updateRecentFileActions(self):
+        
+        if not self.has_menu_bar:
+            return
+            
+        if not self.enable_recent_files:
+            return
 
         fileL = self.recent_file_obj.recent_fileL
         
@@ -424,8 +417,9 @@ class GenGUI(GenericGUI):
         
     def load_file(self, full_fname):
         
-        self.recent_file_obj.update( full_fname )
-        self.updateRecentFileActions()
+        if self.enable_recent_files:
+            self.recent_file_obj.update( full_fname )
+            self.updateRecentFileActions()
         
         head,tail = os.path.split( full_fname )
         
@@ -439,7 +433,7 @@ class GenGUI(GenericGUI):
             self.inputD = inputD['Input']
             self.set_IO_values( )
         
-        self.objectD['statusBar'].showMessage( 'Opened File: "%s"'%self.current_fileName )
+        self.status_bar.showMessage( 'Opened File: "%s"'%self.current_fileName )
         self.updateRecentFileActions()
         
         # No current changes to worry about
@@ -484,9 +478,10 @@ class GenGUI(GenericGUI):
     def save_file(self):
         
         if self.current_config_interface is not None:
-            
-            self.recent_file_obj.update( self.current_config_interface.config_filename )
-            self.updateRecentFileActions()
+
+            if self.enable_recent_files:
+                self.recent_file_obj.update( self.current_config_interface.config_filename )
+                self.updateRecentFileActions()
             
             resultD = self.get_IO_values()
             keyL = resultD.keys()
@@ -495,7 +490,7 @@ class GenGUI(GenericGUI):
                 self.current_config_interface['Input',key] = resultD[key]
             self.current_config_interface.save_file()
             
-            self.objectD['statusBar'].showMessage( 'Saved to File: "%s"'%self.current_fileName )
+            self.status_bar.showMessage( 'Saved to File: "%s"'%self.current_fileName )
             
             self.set_main_window_title()
             QtGui.QMessageBox.information(self,
@@ -518,9 +513,10 @@ class GenGUI(GenericGUI):
         if Qfname:
             fname = str( Qfname )
             head,tail = os.path.split( fname )
-            
-            self.recent_file_obj.update( fname )
-            self.updateRecentFileActions()
+
+            if self.enable_recent_files:
+                self.recent_file_obj.update( fname )
+                self.updateRecentFileActions()
             
             self.current_filePath = head
             self.current_fileName = tail
@@ -534,7 +530,7 @@ class GenGUI(GenericGUI):
                 self.current_config_interface['Input',key] = resultD[key]
             self.current_config_interface.save_file()
             
-            self.objectD['statusBar'].showMessage( 'Saved to File: "%s"'%self.current_fileName )
+            self.status_bar.showMessage( 'Saved to File: "%s"'%self.current_fileName )
         
             self.updateRecentFileActions()
             

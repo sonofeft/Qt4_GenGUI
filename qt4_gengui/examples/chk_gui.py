@@ -7,14 +7,19 @@ from qt4_gengui.build_gui import ARIAL_8B, ARIAL_10B, ARIAL_12B, ARIAL_8, ARIAL_
 
 class MyGUI( GenGUI ):
 
-    def __init__(self, centerContent=False):
-        super(MyGUI, self).__init__(centerContent=centerContent)
+    def __init__(self, centerContent=False, has_menu_bar=True, enable_recent_files=True):
+        
+        super(MyGUI, self).__init__(centerContent=centerContent, 
+                                     has_menu_bar=has_menu_bar,
+                                     enable_recent_files=enable_recent_files)
                         
     def initVars(self):
         self.data_file_suffix = '.dat'
         GenGUI.tabL.extend(  ['Pollywog','Tree Frog'] )
         
-        self.main_window_title_str = 'Pollywog Calcs'
+        # Will create a configuration file at:
+        #    C:\Users\<Your Name>\<main_window_title_str>.cfg
+        self.main_window_title_str = 'Pollywog Calcs' # <== builds *.cfg file
     
     def add_widgets( self ):
         
@@ -27,9 +32,6 @@ class MyGUI( GenGUI ):
             tabObj = MyWidget()
             GenGUI.tabObjectD[tab_label] = tabObj
             GenGUI.tabIndexD[tab_label] = self.tabWidget.addTab( tabObj ,tab_label)
-            grid = QtGui.QGridLayout()
-            grid.setSpacing(0)
-            tabObj.setLayout(grid)
         
         
         Nrow = self.get_next_row_number( advance_n=True)
